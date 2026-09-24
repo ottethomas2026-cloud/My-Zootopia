@@ -1,43 +1,51 @@
 import json
 
+DATA_FILE_PATH = "animals_data.json"
+TEMPLATE_FILE_PATH = "animals_template.html"
+OUTPUT_FILE_PATH = "animals.html"
+
 
 def load_data(file_path):
-    """Lädt eine JSON-Datei"""
-    with open(file_path, "r") as handle:
+    """Lädt und gibt den Inhalt einer JSON-Datei zurück."""
+    with open(file_path, "r", encoding="utf-8") as handle:
         return json.load(handle)
 
 
 def serialize_animal(animal):
-    """Serialisiert ein einzelnes Tier-Objekt in ein HTML-Listenelement (<li>)"""
+    """Serialisiert ein einzelnes Tier-Objekt in ein HTML-Karten-Element."""
     output = '<li class="cards__item">\n'
 
-    # Name
+    # Name / Titel der Karte
     if "name" in animal and animal["name"]:
-        output += f"  Name: {animal['name']}<br/>\n"
+        output += f'  <div class="card__title">{animal["name"]}</div>\n'
+
+    output += '  <p class="card__text">\n'
 
     characteristics = animal.get("characteristics", {})
 
-    # Ernährung (Diet)
+    # Diet (Ernährung)
     diet = characteristics.get("diet") or animal.get("diet")
     if diet:
-        output += f"  Diet: {diet}<br/>\n"
+        output += f"      <strong>Diet:</strong> {diet}<br/>\n"
 
-    # Erster Ort aus der Liste 'locations'
+    # Location (Erster Ort)
     locations = animal.get("locations", [])
     if locations and len(locations) > 0:
-        output += f"  Location: {locations[0]}<br/>\n"
+        output += f"      <strong>Location:</strong> {locations[0]}<br/>\n"
 
-    # Typ (Type)
+    # Type (Typ)
     animal_type = characteristics.get("type") or animal.get("type")
     if animal_type:
-        output += f"  Type: {animal_type}<br/>\n"
+        output += f"      <strong>Type:</strong> {animal_type}<br/>\n"
 
+    output += "  </p>\n"
     output += "</li>\n"
+
     return output
 
 
-def generate_animal_info_string(animals_data):
-    """Erzeugt den HTML-String aller Tiere"""
+def generate_animals_html(animals_data):
+    """Erzeugt den gesammelten HTML-String für alle Tiere in der Liste."""
     output = ""
     for animal in animals_data:
         output += serialize_animal(animal)
@@ -45,25 +53,26 @@ def generate_animal_info_string(animals_data):
 
 
 def main():
-    # 1. Daten und HTML-Template einlesen
-    animals_data = load_data("animals_data.json")
+    """Hauptfunktion zum Steuern des Workflows."""
+    # 1. Daten und Vorlage einlesen
+    animals_data = load_data(DATA_FILE_PATH)
 
-    with open("animals_template.html", "r") as handle:
+    with open(TEMPLATE_FILE_PATH, "r", encoding="utf-8") as handle:
         template_content = handle.read()
 
-    # 2. HTML-Karten-String für die Tiere erzeugen
-    animals_info_string = generate_animal_info_string(animals_data)
+    # 2. Tierdaten in HTML-Karten umwandeln
+    animals_info_string = generate_animals_html(animals_data)
 
-    # 3. Platzhalter im Template ersetzen
+    # 3. Platzhalter ersetzen
     new_html_content = template_content.replace(
         "__REPLACE_ANIMALS_INFO__", animals_info_string
     )
 
-    # 4. In animals.html schreiben
-    with open("animals.html", "w") as handle:
+    # 4. In Ziel-HTML-Datei schreiben
+    with open(OUTPUT_FILE_PATH, "w", encoding="utf-8") as handle:
         handle.write(new_html_content)
 
-    print("Die Datei animals.html wurde mit HTML-Karten aktualisiert!")
+    print(f"Die Datei {OUTPUT_FILE_PATH} wurde erfolgreich erstellt.")
 
 
 if __name__ == "__main__":
