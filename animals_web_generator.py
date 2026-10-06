@@ -86,21 +86,21 @@ def main() -> None:
     # 2. Daten von der API laden
     animals_data = fetch_data(animal_name)
 
+    # 3. Inhalt erzeugen: Falls keine Tiere gefunden wurden, erstelle eine Fehlermeldung
     if not animals_data:
-        print(f"Keine Daten für '{animal_name}' gefunden.")
-        return
+        animals_info_string = f'<h2>Das Tier "{animal_name}" existiert nicht.</h2>'
+    else:
+        animals_info_string = generate_animal_info_string(animals_data)
 
-    # 3. Template einlesen & Platzhalter ersetzen
+    # 4. Template einlesen & Platzhalter ersetzen
     with open("animals_template.html", "r", encoding="utf-8") as handle:
         template_content = handle.read()
-
-    animals_info_string = generate_animal_info_string(animals_data)
 
     new_html_content = template_content.replace(
         "__REPLACE_ANIMALS_INFO__", animals_info_string
     )
 
-    # 4. HTML speichern
+    # 5. HTML speichern
     with open("animals.html", "w", encoding="utf-8") as handle:
         handle.write(new_html_content)
 
