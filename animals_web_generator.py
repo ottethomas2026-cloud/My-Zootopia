@@ -3,16 +3,19 @@ import requests
 from typing import Any, Dict, List
 from dotenv import load_dotenv
 
-# Lädt Umgebungsvariablen aus einer .env-Datei (falls vorhanden)
+# Lädt Umgebungsvariablen aus der .env-Datei
 load_dotenv()
 
-# Verwendet deinen API-Schlüssel
-API_KEY = os.getenv("API_KEY", "GkEpZcQuF7P8fXMBkSuUSCucQW3phrusfckvWSWv")
+API_KEY = os.getenv("API_KEY")
 API_URL = "https://api.api-ninjas.com/v1/animals"
 
 
 def fetch_data(animal_name: str) -> List[Dict[str, Any]]:
     """Holt Tierdaten dynamisch von der API Ninja."""
+    if not API_KEY:
+        print("Fehler: Kein API_KEY in der .env-Datei gefunden!")
+        return []
+
     headers = {"X-Api-Key": API_KEY}
     response = requests.get(f"{API_URL}?name={animal_name}", headers=headers)
 
@@ -72,20 +75,22 @@ def generate_animal_info_string(animals_data: List[Dict[str, Any]]) -> str:
 
 
 def main() -> None:
-    """Hauptfunktion: Holt Daten von der API für 'Fox' und erzeugt das HTML."""
-    target_animal = "Fox"
-    print(f"Hole Daten von der API für '{target_animal}'...")
+    """Hauptfunktion: Fragt den Benutzer nach einem Tiernamen und generiert die Webseite."""
+    # 1. Benutzereingabe abfragen
+    animal_name = input("Enter a name of an animal: ").strip()
 
-    # 1. Daten von der API laden (statt aus der JSON-Datei)
-    animals_data = fetch_data(target_animal)
-
-    if not animals_data:
-        print(f"Keine Daten für '{target_animal}' gefunden.")
+    if not animal_name:
+        print("Kein Tiername eingegeben. Vorgang abgebrochen.")
         return
 
-    print(f"Es wurden {len(animals_data)} Ergebnisse für '{target_animal}' geladen.")
+    # 2. Daten von der API laden
+    animals_data = fetch_data(animal_name)
 
-    # 2. Template einlesen & Platzhalter ersetzen
+    if not animals_data:
+        print(f"Keine Daten für '{animal_name}' gefunden.")
+        return
+
+    # 3. Template einlesen & Platzhalter ersetzen
     with open("animals_template.html", "r", encoding="utf-8") as handle:
         template_content = handle.read()
 
@@ -95,11 +100,11 @@ def main() -> None:
         "__REPLACE_ANIMALS_INFO__", animals_info_string
     )
 
-    # 3. HTML speichern
+    # 4. HTML speichern
     with open("animals.html", "w", encoding="utf-8") as handle:
         handle.write(new_html_content)
 
-    print("Die Datei animals.html wurde erfolgreich aktualisiert!")
+    print("Website was successfully generated to the file animals.html.")
 
 
 if __name__ == "__main__":
