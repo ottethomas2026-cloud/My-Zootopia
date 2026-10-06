@@ -1,29 +1,5 @@
-import os
-import requests
 from typing import Any, Dict, List
-from dotenv import load_dotenv
-
-# Lädt Umgebungsvariablen aus der .env-Datei
-load_dotenv()
-
-API_KEY = os.getenv("API_KEY")
-API_URL = "https://api.api-ninjas.com/v1/animals"
-
-
-def fetch_data(animal_name: str) -> List[Dict[str, Any]]:
-    """Holt Tierdaten dynamisch von der API Ninja."""
-    if not API_KEY:
-        print("Fehler: Kein API_KEY in der .env-Datei gefunden!")
-        return []
-
-    headers = {"X-Api-Key": API_KEY}
-    response = requests.get(f"{API_URL}?name={animal_name}", headers=headers)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Fehler beim Abrufen der Daten: Statuscode {response.status_code}")
-        return []
+import data_fetcher
 
 
 def serialize_animal(animal: Dict[str, Any]) -> str:
@@ -83,8 +59,8 @@ def main() -> None:
         print("Kein Tiername eingegeben. Vorgang abgebrochen.")
         return
 
-    # 2. Daten von der API laden
-    animals_data = fetch_data(animal_name)
+    # 2. Daten über den Data Fetcher laden
+    animals_data = data_fetcher.fetch_data(animal_name)
 
     # 3. Inhalt erzeugen: Falls keine Tiere gefunden wurden, erstelle eine Fehlermeldung
     if not animals_data:
