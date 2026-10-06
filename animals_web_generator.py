@@ -1,29 +1,33 @@
-import json
-from typing import Any, Dict, List, Set
+import os
+import requests
+from typing import Any, Dict, List
+from dotenv import load_dotenv
+
+# Lädt Umgebungsvariablen aus einer .env-Datei (falls vorhanden)
+load_dotenv()
+
+# Verwendet deinen API-Schlüssel
+API_KEY = os.getenv("API_KEY", "GkEpZcQuF7P8fXMBkSuUSCucQW3phrusfckvWSWv")
+API_URL = "https://api.api-ninjas.com/v1/animals"
 
 
-def load_data(file_path: str) -> List[Dict[str, Any]]:
-    """Lädt eine JSON-Datei und gibt die Datenstruktur zurück."""
-    with open(file_path, "r", encoding="utf-8") as handle:
-        return json.load(handle)
+def fetch_data(animal_name: str) -> List[Dict[str, Any]]:
+    """Holt Tierdaten dynamisch von der API Ninja."""
+    headers = {"X-Api-Key": API_KEY}
+    response = requests.get(f"{API_URL}?name={animal_name}", headers=headers)
 
-
-def get_available_skin_types(animals_data: List[Dict[str, Any]]) -> Set[str]:
-    """Sammelt alle eindeutigen skin_type-Werte aus den Tierdaten."""
-    skin_types = set()
-    for animal in animals_data:
-        characteristics = animal.get("characteristics", {})
-        skin_type = characteristics.get("skin_type")
-        if skin_type:
-            skin_types.add(skin_type)
-    return skin_types
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Fehler beim Abrufen der Daten: Statuscode {response.status_code}")
+        return []
 
 
 def serialize_animal(animal: Dict[str, Any]) -> str:
     """Serialisiert ein einzelnes Tier-Objekt in ein strukturiertes HTML-Karten-Element."""
     output = '<li class="cards__item">\n'
 
-    # Titel / Name der Karte
+    # Name der Karte
     name = animal.get("name")
     if name:
         output += f'  <div class="card__title">{name}</div>\n'
@@ -68,50 +72,30 @@ def generate_animal_info_string(animals_data: List[Dict[str, Any]]) -> str:
 
 
 def main() -> None:
-    """Hauptfunktion: Lädt Daten, lässt den Benutzer filtern und generiert das HTML."""
-    animals_data = load_data("animals_data.json")
+    """Hauptfunktion: Holt Daten von der API für 'Fox' und erzeugt das HTML."""
+    target_animal = "Fox"
+    print(f"Hole Daten von der API für '{target_animal}'...")
 
-    # 1. Verfügbare Skin Types ermitteln
-    available_skin_types = get_available_skin_types(animals_data)
+    # 1. Daten von der API laden (statt aus der JSON-Datei)
+    animals_data = fetch_data(target_animal)
 
-    print("Verfügbare Hauttypen (Skin Types):")
-    for st in sorted(available_skin_types):
-        print(f" - {st}")
-    print()
+    if not animals_data:
+        print(f"Keine Daten für '{target_animal}' gefunden.")
+        return
 
-    # 2. Benutzereingabe abfragen
-    selected_skin_type = input(
-        "Bitte wähle einen Skin Type aus der Liste (oder drücke Enter für ALLE Tiere): "
-    ).strip()
+    print(f"Es wurden {len(animals_data)} Ergebnisse für '{target_animal}' geladen.")
 
-    # 3. Tiere filtern
-    if selected_skin_type:
-        filtered_animals = [
-            animal
-            for animal in animals_data
-            if animal.get("characteristics", {})
-            .get("skin_type", "")
-            .lower()
-            == selected_skin_type.lower()
-        ]
-        print(
-            f"\nEs wurden {len(filtered_animals)} Tiere mit Skin Type '{selected_skin_type}' gefunden."
-        )
-    else:
-        filtered_animals = animals_data
-        print(f"\nZeige alle {len(filtered_animals)} Tiere an.")
-
-    # 4. Template einlesen & Platzhalter ersetzen
+    # 2. Template einlesen & Platzhalter ersetzen
     with open("animals_template.html", "r", encoding="utf-8") as handle:
         template_content = handle.read()
 
-    animals_info_string = generate_animal_info_string(filtered_animals)
+    animals_info_string = generate_animal_info_string(animals_data)
 
     new_html_content = template_content.replace(
         "__REPLACE_ANIMALS_INFO__", animals_info_string
     )
 
-    # 5. HTML speichern
+    # 3. HTML speichern
     with open("animals.html", "w", encoding="utf-8") as handle:
         handle.write(new_html_content)
 
