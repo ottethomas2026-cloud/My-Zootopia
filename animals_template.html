@@ -1,13 +1,13 @@
 <html>
     <head>
         <style>
-        @gray-darker:               #444444;
-        @gray-dark:                 #696969;
-        @gray:                      #999999;
-        @gray-light:                #cccccc;
-        @gray-lighter:              #ececec;
-        @gray-lightest:             lighten(@gray-lighter,4%);
-
+        :root {
+          --gray-darker: #444444;
+          --gray-dark: #696969;
+          --gray: #999999;
+          --gray-light: #cccccc;
+          --gray-lighter: #ececec;
+        }
 
         html {
           background-color: #ffe9e9;
@@ -49,7 +49,7 @@
         }
 
         .card__title {
-          color: #696969;
+          color: var(--gray-dark);
           font-size: 1.25rem;
           font-weight: 300;
           letter-spacing: 2px;
@@ -64,7 +64,6 @@
           margin-bottom: 0.5rem;
         }
 
-        /* CSS für die innere Liste aus dem Bonus-Schritt */
         .card__details {
           list-style: none;
           padding: 0;
